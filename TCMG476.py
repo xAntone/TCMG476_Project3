@@ -1,7 +1,7 @@
 from urllib.request import urlretrieve
 import re
-
-'''URL_PATH = 'https://s3.amazonaws.com/tcmg476/http_access_log'
+'''
+URL_PATH = 'https://s3.amazonaws.com/tcmg476/http_access_log'
 LOCAL_FILE = 'local_copy.log'
 
 local_file, headers = urlretrieve(URL_PATH, LOCAL_FILE)
@@ -23,12 +23,14 @@ while line:
 
 fh.close()
 things = []
+ERRORS = []
 
 # Let's say we're counting the number of times that a particular filename appears in a log file
 for line in open(FILE_NAME):
 
   # Use the Regex module to split out the filename from the line
   pieces = line.split(" ")
+  #print(pieces)
   things.append(pieces)
 
 lineTotal = 0
@@ -65,13 +67,54 @@ for line in things:
             countNov +=1
 print("November requests " + str(countNov))
 
+'''
+#DAILY HERE
 
-oct = "oct"
-nov = "nov"
-countMD = [[oct,nov], [1,2,3]]
-print(countMD[0],[0])
+currentDay = 0
+pastDay = 0
+numberPerDay = 0
+
+for line in things:
+    if len(line) > 9:
+        currentDay = int(float(line[3][1] + line[3][2]))
+        if (currentDay ==  pastDay):
+          numberPerDay +=1
+        else:
+          print(line[3][4] + line[3][5] + line [3][6] + " ||| " + str(pastDay) + " ||| "+ str(numberPerDay))
+          numberPerDay = 0
+        pastDay = currentDay
+
+#WEEKLY HERE
+
+currentDay = 0
+pastDay = 0
+numberPerWeek = 0
+dayOfWeek = 0
+weekStart = 0
+monthStart = "XXX"
+
+for line in things:
+    if len(line) > 9:
+        currentDay = int(float(line[3][1] + line[3][2]))
+        if (numberPerWeek == 0):
+          weekStart = currentDay
+          monthStart = str(line[3][4] + line[3][5] + line [3][6])
+        if (currentDay == pastDay):
+          numberPerWeek += 1
+        elif (dayOfWeek < 6):
+          dayOfWeek += 1
+          numberPerWeek +=1
+        else:
+          endOfWeekMonth = str(line[3][4] + line[3][5] + line [3][6])
+          endOfWeekDay = line[3][1] + line[3][2]
+          print("Week of " + monthStart + " , " + str(weekStart) + " --- " + endOfWeekMonth +
+                " , " + endOfWeekDay + " = " + str(numberPerWeek))
+          numberPerWeek = 0
+          dayOfWeek = 0
+        pastDay = currentDay
 
 
+'''
 '''
 # print("\nErrors: " + str(len(ERRORS)))
 #print(ERRORS)
