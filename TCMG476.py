@@ -24,16 +24,15 @@ while line:
   #print(line)
 fh.close()
 
-things = {}
-
-
-
+things = []
 
 # Let's say we're counting the number of times that a particular filename appears in a log file
 for line in open(FILE_NAME):
 
   # Use the Regex module to split out the filename from the line
   pieces = re.split(".*\[([^:]*):(.*) \-[0-9]{4}\] \"([A-Z]+) (.+?)( HTTP.*\"|\") ([2-5]0[0-9]) .*", line)
+  things.append(pieces)
 
   # Let's further say that we can get the filename part at the 4th list element
-  print(pieces)
+print(things[0][2])
+print(things[0])
