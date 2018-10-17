@@ -1,133 +1,85 @@
 from urllib.request import urlretrieve
 import re
-'''
+import os.path
+from datetime import datetime
+
 URL_PATH = 'https://s3.amazonaws.com/tcmg476/http_access_log'
 LOCAL_FILE = 'local_copy.log'
 
-local_file, headers = urlretrieve(URL_PATH, LOCAL_FILE)
+#check to see if we have copy of file
 
-print("Downloading File")
-local_file, headers = urlretrieve(URL_PATH, LOCAL_FILE, lambda x,y,z:print('.', end='', flush=True) if x % 100 == 0 else False)
-'''
+if not os.path.isfile(LOCAL_FILE):
+  # local_file, headers = urlretrieve(URL_PATH, LOCAL_FILE)
+  print("Downloading File")
+  local_file, headers = urlretrieve(URL_PATH, LOCAL_FILE,
+                                    lambda x, y, z: print('.', end='', flush=True) if x % 100 == 0 else False)
 
-FILE_NAME = '/Users/antone/TCMG476_Project3/local_copy.log'
-
-# Use open() to get a filehandle that can access the file
-fh = open(FILE_NAME)
-
-line = fh.readline()
-# Loop through the file
-while line:
-  #print(line)
-  line = fh.readline()
-
-fh.close()
 things = []
 ERRORS = []
 
-# Let's say we're counting the number of times that a particular filename appears in a log file
-for line in open(FILE_NAME):
-
-  # Use the Regex module to split out the filename from the line
-  pieces = line.split(" ")
-  #print(pieces)
-  things.append(pieces)
-
-lineTotal = 0
-for line in things:
-    lineTotal += 1
-
-print("Total requests " + str(lineTotal))
-
+countTotal = 0
 count400 = 0
-for line in things:
-    if len(line) > 9:
-        if line[8][0] == '4':
-            count400 += 1
-print ("4xx requests " + str(count400))
-
 count300 = 0
-for line in things:
-    if len(line) > 9:
-        if line[8][0] == '3':
-            count300 +=1
-print("3xx requests " + str(count300))
 
-countOct = 0
-for line in things:
-    if len(line) > 9:
-        if line[3][4] == 'O':
-            countOct +=1
-print("October requests " + str(countOct))
+calendar = {1:[],2:[],3:[],4:[],5:[],6:[],7:[],8:[],9:[],10:[],11:[],12:[]}
 
-countNov = 0
-for line in things:
-    if len(line) > 9:
-        if line[3][4] == 'N':
-            countNov +=1
-print("November requests " + str(countNov))
+# Let's say we're counting the number of times that a particular filename appears in a log file
+for line in open(LOCAL_FILE):
+  countTotal += 1
+  #if countTotal > 10:
+    #break
+  # Use the Regex module to split out the filename from the line
+  # pieces = line.split(" ")
+  pieces = re.split('.*\[([^:]*):(.*) \-[0-9]{4}\] \"([A-Z]+) (.+?)( HTTP.*\"|\") ([2-5]0[0-9]) .*', line)
 
-'''
-#DAILY HERE
+  #print(pieces)
 
-currentDay = 0
-pastDay = 0
-numberPerDay = 0
+  if not pieces or len(pieces) < 8:
+    ERRORS.append(line)
+    continue
 
-for line in things:
-    if len(line) > 9:
-        currentDay = int(float(line[3][1] + line[3][2]))
-        if (currentDay ==  pastDay):
-          numberPerDay +=1
-        else:
-          print(line[3][4] + line[3][5] + line [3][6] + " ||| " + str(pastDay) + " ||| "+ str(numberPerDay))
-          numberPerDay = 0
-        pastDay = currentDay
+  statusCode = pieces[6]
+  filename = pieces[4]
+  requestDate = datetime.strptime(pieces[1], '%d/%b/%Y')
 
-#WEEKLY HERE
+  if countTotal % 1000 == 0:
+    print(".",end='')
 
-currentDay = 0
-pastDay = 0
-numberPerWeek = 0
-dayOfWeek = 0
-weekStart = 0
-monthStart = "XXX"
+  #check status code
+  if statusCode[0] == '4':
+    count400 += 1
 
-for line in things:
-    if len(line) > 9:
-        currentDay = int(float(line[3][1] + line[3][2]))
-        if (numberPerWeek == 0):
-          weekStart = currentDay
-          monthStart = str(line[3][4] + line[3][5] + line [3][6])
-        if (currentDay == pastDay):
-          numberPerWeek += 1
-        elif (dayOfWeek < 6):
-          dayOfWeek += 1
-          numberPerWeek +=1
-        else:
-          endOfWeekMonth = str(line[3][4] + line[3][5] + line [3][6])
-          endOfWeekDay = line[3][1] + line[3][2]
-          print("Week of " + monthStart + " , " + str(weekStart) + " --- " + endOfWeekMonth +
-                " , " + endOfWeekDay + " = " + str(numberPerWeek))
-          numberPerWeek = 0
-          dayOfWeek = 0
-        pastDay = currentDay
+  if statusCode[0] == '3':
+    count300 += 1
+
+  #break the log into months
+  calendar[requestDate.month].append(line)
+
+print("Total requests " + str(countTotal))
+
+for k,v in calendar.items():
+  #print("Month = {}, Values = {}".format(k,len(v)))
+  filename = "{}.log".format(k)
+  with open(filename, mode='w') as fh:
+    fh.write("".join(v))
+    fh.close()
 
 
-'''
-'''
-# print("\nErrors: " + str(len(ERRORS)))
-#print(ERRORS)
 
-count3 = 0
-count4 = 0
-for i in range(0,len(things)):
-  print(i)
-  if str(things[i][6]).startswith("4"):
-    count4 += 1
-  elif str(things[i][6]).startswith("3"):
-    count3 += 1
+# for line in open('/Users/antone/TCMG476_Project3/local_copy.log'):
+#   # Use the Regex module to split out the filename from the line
+#   pieces = re.split('.*\[([^:]*):(.*) \-[0-9]{4}\] \"([A-Z]+) (.+?)( HTTP.*\"|\") ([2-5]0[0-9]) .*', line)
+#
+#   date = pieces[1]
+#   filename = pieces[4]
+#   statusCode = pieces[6]
+#
+#   if filename in things:
+#    # So we've already added this file -- let's increment the counter
+#     things[filename] += 1
+#   else:
+#     # This is a new filename -- let's add it to the dictionary
+#    things[filename] = 1
 
-print(count4)
-print(count3)
-'''
+
+# sort by value to find highest
