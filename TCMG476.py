@@ -1,7 +1,6 @@
 from urllib.request import urlretrieve
 import re
 import os.path
-from operator import itemgetter
 from datetime import datetime
 
 
@@ -58,24 +57,16 @@ for line in open(LOCAL_FILE):
   # break the log into months
   calendar[requestDate.month].append(line)
 
-
-
-
-
   if filename in things:
     # So we've already added this file -- let's increment the counter
     things[filename] += 1
+
   else:
     # This is a new filename -- let's add it to the dictionary
     things[filename] = 1
 
-
 max = (max(things, key=things.get))
 min = (min(things, key=things.get))
-
-
-
-
 
 
 
@@ -86,13 +77,14 @@ for k,v in calendar.items():
     fh.write("".join(v))
     fh.close()
 
-
+four = (count400/countTotal)*100
+three = count300/countTotal*100
 
 print("\n")
 print("1. Total requests = " + str(countTotal))
 print("2.")
-print("3. Percentage of requests not successful  = {0:.2f}%".format(countTotal/count400))
-print("4. Percentage of requests redirected elsewhere = {0:.2f}%".format(countTotal/count300))
+#print("3. Percentage of requests not successful  = {0:.2f}%".format(four))
+#print("4. Percentage of requests redirected elsewhere = {0:.2f}%".format(three))
 print("5. Most requested file = {}".format(max))
 print("6. Least requested file = {}".format(min))
 
