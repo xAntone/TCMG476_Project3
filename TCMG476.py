@@ -1,7 +1,10 @@
 from urllib.request import urlretrieve
 import re
 import os.path
+from operator import itemgetter
 from datetime import datetime
+
+
 
 URL_PATH = 'https://s3.amazonaws.com/tcmg476/http_access_log'
 LOCAL_FILE = 'local_copy.log'
@@ -14,12 +17,13 @@ if not os.path.isfile(LOCAL_FILE):
   local_file, headers = urlretrieve(URL_PATH, LOCAL_FILE,
                                     lambda x, y, z: print('.', end='', flush=True) if x % 100 == 0 else False)
 
-things = []
+things = {}
 ERRORS = []
 
 countTotal = 0
 count400 = 0
 count300 = 0
+countRequest = 0
 
 calendar = {1:[],2:[],3:[],4:[],5:[],6:[],7:[],8:[],9:[],10:[],11:[],12:[]}
 
@@ -32,7 +36,7 @@ for line in open(LOCAL_FILE):
   # pieces = line.split(" ")
   pieces = re.split('.*\[([^:]*):(.*) \-[0-9]{4}\] \"([A-Z]+) (.+?)( HTTP.*\"|\") ([2-5]0[0-9]) .*', line)
 
-  #print(pieces)
+  print(pieces)
 
   if not pieces or len(pieces) < 8:
     ERRORS.append(line)
@@ -51,11 +55,29 @@ for line in open(LOCAL_FILE):
 
   if statusCode[0] == '3':
     count300 += 1
-
-  #break the log into months
+  # break the log into months
   calendar[requestDate.month].append(line)
 
-print("Total requests " + str(countTotal))
+
+
+
+
+  if filename in things:
+    # So we've already added this file -- let's increment the counter
+    things[filename] += 1
+  else:
+    # This is a new filename -- let's add it to the dictionary
+    things[filename] = 1
+
+
+max = (max(things, key=things.get))
+min = (min(things, key=things.get))
+
+
+
+
+
+
 
 for k,v in calendar.items():
   #print("Month = {}, Values = {}".format(k,len(v)))
@@ -66,20 +88,12 @@ for k,v in calendar.items():
 
 
 
-# for line in open('/Users/antone/TCMG476_Project3/local_copy.log'):
-#   # Use the Regex module to split out the filename from the line
-#   pieces = re.split('.*\[([^:]*):(.*) \-[0-9]{4}\] \"([A-Z]+) (.+?)( HTTP.*\"|\") ([2-5]0[0-9]) .*', line)
-#
-#   date = pieces[1]
-#   filename = pieces[4]
-#   statusCode = pieces[6]
-#
-#   if filename in things:
-#    # So we've already added this file -- let's increment the counter
-#     things[filename] += 1
-#   else:
-#     # This is a new filename -- let's add it to the dictionary
-#    things[filename] = 1
+print("\n")
+print("1. Total requests = " + str(countTotal))
+print("2.")
+print("3. Percentage of requests not successful  = {0:.2f}%".format(countTotal/count400))
+print("4. Percentage of requests redirected elsewhere = {0:.2f}%".format(countTotal/count300))
+print("5. Most requested file = {}".format(max))
+print("6. Least requested file = {}".format(min))
 
 
-# sort by value to find highest
